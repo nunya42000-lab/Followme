@@ -1,10 +1,16 @@
 /**
- * NEW: Triggers a short vibration, if enabled and supported.
- * UPDATED: Removed try...catch which may have been swallowing errors.
+ * Triggers a short vibration, if enabled and supported.
+ * UPDATED: Re-added try...catch to prevent OS-level errors
+ * from halting script execution.
  */
 function vibrate(duration = 10) {
     if (settings.isHapticsEnabled && 'vibrate' in navigator) {
-        navigator.vibrate(duration);
+        try {
+            navigator.vibrate(duration);
+        } catch (e) {
+            // Haptics failed, but we don't want it to break the app
+            console.warn("Haptic feedback failed.", e);
+        }
     }
 }
 
@@ -200,7 +206,7 @@ function handleRestoreDefaults() {
     updateSliderLockState();
 
     // Toggles
-    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // NEW
+    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen;
     if (darkModeToggle) darkModeToggle.checked = settings.isDarkMode;
     if (speedDeleteToggle) speedDeleteToggle.checked = settings.isSpeedDeletingEnabled;
     if (pianoAutoplayToggle) pianoAutoplayToggle.checked = settings.isPianoAutoplayEnabled;
@@ -233,3 +239,4 @@ function handleRestoreDefaults() {
     // 5. Close the modal
     closeSettingsModal();
         }
+        
