@@ -264,9 +264,9 @@ body {
     background-color: #10b981; /* green-500 */
 }
 
-/* NEW: Help Tab Styles */
+/* UPDATED: Help Tab Styles */
 .help-tab-button {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem; /* Reduced horizontal padding */
     font-weight: 600;
     color: #6b7280; /* gray-500 */
     border-bottom: 3px solid transparent;
@@ -284,5 +284,5 @@ body {
 .help-tab-button.active-tab {
     color: var(--tw-color-primary-app, #4f46e5);
     border-bottom-color: var(--tw-color-primary-app, #4f46e5);
-  }
-                                      
+    }
+    
