@@ -7,7 +7,7 @@
     
     <meta name="theme-color" content="#4f46e5">
 
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/Follow/manifest.json">
 
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
 
@@ -39,7 +39,7 @@
         }
     </script>
     
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/Follow/style.css">
 </head>
 <body class="dark min-h-screen flex flex-col font-sans p-4">
 
@@ -89,7 +89,7 @@
             <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share This App</h3>
             
             <p class="text-gray-700 dark:text-gray-300 mb-4">Scan the code to open this app on another device.</p>
-            <img src="1000021086.jpg" alt="Share QR Code" class="w-64 h-64 mx-auto rounded-lg mb-6 border-4 border-white dark:border-gray-700">
+            <img src="/Follow/1000021086.jpg" alt="Share QR Code" class="w-64 h-64 mx-auto rounded-lg mb-6 border-4 border-white dark:border-gray-700">
             
             <div class="flex flex-col space-y-3 mb-6">
                 <button id="native-share-button" data-action="native-share" class="hidden w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg flex items-center justify-center">
@@ -182,8 +182,8 @@
                             <input type="checkbox" id="show-welcome-toggle" class="sr-only peer" checked>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                         </label>
-                    </div>
-                    
+                                                               </div>
+                                    
                     <div class="flex items-center justify-between mb-6">
                         <label for="dark-mode-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">Dark Mode</label>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -260,7 +260,7 @@
                         <div class="flex items-center justify-between mb-8">
                             <label for="rounds15-clear-after-playback-toggle" class="text-gray-700 dark:text-gray-300 text-lg font-semibold">15 rounds Auto-Clear/Advance</label>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="rounds15-clear-after-playback-toggle" class="sr-only peer" checked> 
+                                <input type="checkbox" id="rounds1fs-clear-after-playback-toggle" class="sr-only peer" checked> 
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-app/50 dark:peer-focus:ring-primary-app rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-app"></div>
                             </label>
                         </div>
@@ -308,7 +308,8 @@
                             <span id="ui-scale-display">100% (Base)</span>
                             <span>200% (Large)</span>
                         </div>
-                    </div>                        </div>
+                    </div>
+                </div>
                 
             </div>
             
@@ -360,7 +361,7 @@
             </main>
 
         <footer id="input-footer" class="sticky bottom-0 left-0 right-0 p-4 rounded-xl shadow-2xl border-t-4 border-primary-app">
-            
+                               
             <div id="bananas-pad" class="max-w-xs mx-auto">
                 <div class="grid grid-cols-3 gap-3 mb-3">
                     <button data-value="1" data-mode="bananas" class="btn-input btn-pad-number">1</button>
@@ -404,7 +405,7 @@
                     <button data-action="open-settings" data-mode="follows" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
                 </div>
             </div>
-            
+
             <div id="piano-pad" class="max-w-xl mx-auto pt-0 pb-4" style="display: none;">
                 <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
                     <div class="flex h-full w-full">
@@ -540,12 +541,12 @@ Let's start with Round 1.</textarea>
         <button class="copy-button" data-copy-target="prompt-rounds15">📋 <span class="ml-2">Copy</span></button>
     </div>
     
-    <script src="js/config.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/core.js"></script>
-    <script src="js/demo.js"></script>
-    <script src="js/main.js"></script>
+    <script src="/Follow/js/config.js"></script>
+    <script src="/Follow/js/state.js"></script>
+    <script src="/Follow/js/ui.js"></script>
+    <script src="/Follow/js/core.js"></script>
+    <script src="/Follow/js/demo.js"></script>
+    <script src="/Follow/js/main.js"></script>
 
 </body>
 </html>
