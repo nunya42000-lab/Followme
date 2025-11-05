@@ -3,22 +3,22 @@
   Uses a "Cache, falling back to Network, then update cache" strategy.
 */
 
-// UPDATED: Cache name changed to v2 to force old cache deletion
-const CACHE_NAME = 'follow-me-cache-v2';
+// UPDATED: Cache name changed to v3 to force old cache deletion
+const CACHE_NAME = 'follow-me-cache-v3';
 
-// UPDATED: Core files now list the new JS module structure
+// UPDATED: All paths are now absolute to the domain.
 const APP_SHELL_URLS = [
-    '.', // Alias for index.html
-    'index.html',
-    'style.css',
-    'manifest.json',
-    '1000021086.jpg', // The QR code
-    'js/config.js',
-    'js/state.js',
-    'js/ui.js',
-    'js/core.js',
-    'js/demo.js',
-    'js/main.js'
+    '/Follow/',
+    '/Follow/index.html',
+    '/Follow/style.css',
+    '/Follow/manifest.json',
+    '/Follow/1000021086.jpg',
+    '/Follow/js/config.js',
+    '/Follow/js/state.js',
+    '/Follow/js/ui.js',
+    '/Follow/js/core.js',
+    '/Follow/js/demo.js',
+    '/Follow/js/main.js'
 ];
 
 // --- Install Event ---
@@ -51,7 +51,7 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     // If this cache's name isn't the current one, delete it.
-                    // This will delete 'follow-me-cache-v1'
+                    // This will delete 'follow-me-cache-v1' and 'v2'
                     if (cacheName !== CACHE_NAME) {
                         console.log('[Service Worker] Clearing old cache:', cacheName);
                         return caches.delete(cacheName);
@@ -108,4 +108,4 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
-  
+                      
