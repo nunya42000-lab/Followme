@@ -21,6 +21,8 @@ function assignDomElements() {
     // Share Modal
     shareModal = document.getElementById('share-modal');
     closeShare = document.getElementById('close-share');
+    copyLinkButton = document.getElementById('copy-link-button'); // NEW
+    nativeShareButton = document.getElementById('native-share-button'); // NEW
     
     // Welcome Modal
     welcomeModal = document.getElementById('welcome-modal');
@@ -57,7 +59,7 @@ function assignDomElements() {
     voiceInputToggle = document.getElementById('voice-input-toggle');
     sliderLockToggle = document.getElementById('slider-lock-toggle');
     hapticsToggle = document.getElementById('haptics-toggle');
-    showWelcomeToggle = document.getElementById('show-welcome-toggle'); // NEW
+    showWelcomeToggle = document.getElementById('show-welcome-toggle');
 
     // Sliders
     bananasSpeedSlider = document.getElementById('bananas-speed-slider');
@@ -90,7 +92,7 @@ function initializeListeners() {
         const { value, action, mode, modeSelect, copyTarget } = button.dataset;
 
         if (copyTarget) {
-            // ... (Clipboard logic - no state changes) ...
+            // ... (Clipboard logic for help prompts - no state changes) ...
             const targetElement = document.getElementById(copyTarget);
             if (targetElement) {
                 targetElement.select();
@@ -126,6 +128,37 @@ function initializeListeners() {
             openShareModal();
             return;
         }
+
+        // --- NEW: Share Modal Actions ---
+        if (action === 'copy-link') {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                button.disabled = true;
+                button.classList.add('!bg-btn-control-green'); // Uses Tailwind's "!important" override
+                button.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    Copied!
+                `;
+            }).catch(err => {
+                console.error('Failed to copy link: ', err);
+                button.innerHTML = 'Error Copying';
+            });
+            return;
+        }
+        
+        if (action === 'native-share') {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Follow Me App',
+                    text: 'Check out this sequence memorization app!',
+                    url: window.location.href,
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            }
+            return;
+        }
+        // --- End Share Modal Actions ---
+
         if (modeSelect) {
             handleModeSelection(modeSelect);
             return;
@@ -229,7 +262,7 @@ function initializeListeners() {
     });
     
     // Toggles
-    if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => { // NEW
+    if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => {
         settings.showWelcomeScreen = e.target.checked;
         if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen; // Sync welcome modal toggle
         saveState();
