@@ -1,13 +1,10 @@
 /**
  * NEW: Triggers a short vibration, if enabled and supported.
+ * UPDATED: Removed try...catch which may have been swallowing errors.
  */
 function vibrate(duration = 10) {
     if (settings.isHapticsEnabled && 'vibrate' in navigator) {
-        try {
-            navigator.vibrate(duration);
-        } catch (error) {
-            console.warn("Haptic feedback failed:", error);
-        }
+        navigator.vibrate(duration);
     }
 }
 
@@ -185,7 +182,7 @@ function processVoiceTranscript(transcript) {
 // --- Restore Defaults Function ---
 function handleRestoreDefaults() {
     // 1. Reset settings and state
-    settings = { ...DEFAULT_SETTINGS };
+    settings = { ...DEFAULT_SETTINGS }; // This will set showWelcomeScreen to true
     appState = {
         'bananas': getInitialState('bananas'),
         'follows': getInitialState('follows'),
@@ -203,6 +200,7 @@ function handleRestoreDefaults() {
     updateSliderLockState();
 
     // Toggles
+    if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // NEW
     if (darkModeToggle) darkModeToggle.checked = settings.isDarkMode;
     if (speedDeleteToggle) speedDeleteToggle.checked = settings.isSpeedDeletingEnabled;
     if (pianoAutoplayToggle) pianoAutoplayToggle.checked = settings.isPianoAutoplayEnabled;
@@ -234,4 +232,4 @@ function handleRestoreDefaults() {
     
     // 5. Close the modal
     closeSettingsModal();
-}
+        }
