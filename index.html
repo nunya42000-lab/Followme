@@ -32,6 +32,7 @@
                         'btn-control-red-active': '#b91c1c',
                         'btn-control-blue': '#2563eb', 
                         'btn-control-blue-active': '#1e40af',
+                        'btn-control-green': '#10b981', // For "Copied!"
                     }
                 }
             }
@@ -86,9 +87,23 @@
     <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center">
             <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share This App</h3>
+            
             <p class="text-gray-700 dark:text-gray-300 mb-4">Scan the code to open this app on another device.</p>
             <img src="1000021086.jpg" alt="Share QR Code" class="w-64 h-64 mx-auto rounded-lg mb-6 border-4 border-white dark:border-gray-700">
-            <button id="close-share" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Close</button>
+            
+            <div class="flex flex-col space-y-3 mb-6">
+                <button id="native-share-button" data-action="native-share" class="hidden w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path></svg>
+                    Share...
+                </button>
+
+                <button id="copy-link-button" data-action="copy-link" class="w-full px-6 py-3 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                    Copy Link
+                </button>
+            </div>
+            
+            <button id="close-share" class="w-full px-6 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-semibold">Close</button>
         </div>
     </div>
     
@@ -293,8 +308,7 @@
                             <span id="ui-scale-display">100% (Base)</span>
                             <span>200% (Large)</span>
                         </div>
-                    </div>
-                </div>
+                    </div>                        </div>
                 
             </div>
             
@@ -390,7 +404,7 @@
                     <button data-action="open-settings" data-mode="follows" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
                 </div>
             </div>
-
+            
             <div id="piano-pad" class="max-w-xl mx-auto pt-0 pb-4" style="display: none;">
                 <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
                     <div class="flex h-full w-full">
