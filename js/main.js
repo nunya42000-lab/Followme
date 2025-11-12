@@ -23,17 +23,7 @@ function assignDomElements() {
     closeShare = document.getElementById('close-share');
     copyLinkButton = document.getElementById('copy-link-button'); 
     nativeShareButton = document.getElementById('native-share-button'); 
-
-    // Support Modal
-    supportModal = document.getElementById('support-modal');
-    closeSupportModalBtn = document.getElementById('close-support-modal');
     
-    // Feedback Modal
-    feedbackModal = document.getElementById('feedback-modal');
-    closeFeedbackModalBtn = document.getElementById('close-feedback-modal');
-    feedbackSendBtn = document.getElementById('feedback-send-button');
-    feedbackTextarea = document.getElementById('feedback-textarea');
-
     // Welcome Modal
     welcomeModal = document.getElementById('welcome-modal');
     closeWelcomeModalBtn = document.getElementById('close-welcome-modal');
@@ -45,8 +35,6 @@ function assignDomElements() {
     settingsModeDropdown = document.getElementById('settings-mode-dropdown');
     openShareButton = document.getElementById('open-share-button');
     openHelpButton = document.getElementById('open-help-button');
-    openSupportButton = document.getElementById('open-support-button'); 
-    openFeedbackButton = document.getElementById('open-feedback-button'); 
     closeSettings = document.getElementById('close-settings');
     
     // Settings Controls
@@ -70,6 +58,7 @@ function assignDomElements() {
     audioPlaybackToggle = document.getElementById('audio-playback-toggle');
     voiceInputToggle = document.getElementById('voice-input-toggle');
     sliderLockToggle = document.getElementById('slider-lock-toggle');
+    hapticsToggle = document.getElementById('haptics-toggle');
     showWelcomeToggle = document.getElementById('show-welcome-toggle');
 
     // Sliders
@@ -100,57 +89,10 @@ function initializeListeners() {
         const button = event.target.closest('button');
         if (!button) return;
 
-        // Handle copy buttons in Support Modal
-        if (button.classList.contains('copy-button')) {
-            const targetId = button.dataset.copyTarget;
-            const copyableElement = document.querySelector(`[data-copyable-id="${targetId}"]`);
-            
-            if (!copyableElement) return;
-
-            const textToCopy = copyableElement.value || copyableElement.textContent;
-
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy.trim();
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            
-            try {
-                document.execCommand('copy');
-                
-                if(supportModal) {
-                    supportModal.querySelectorAll('.copy-button').forEach(btn => {
-                        if (btn.disabled) {
-                            btn.disabled = false;
-                            btn.classList.remove('!bg-btn-control-green');
-                            btn.textContent = 'Copy';
-                        }
-                    });
-                }
-
-                button.disabled = true;
-                button.classList.add('!bg-btn-control-green');
-                button.textContent = 'Copied!';
-                
-                setTimeout(() => {
-                    if (button.disabled) {
-                        button.disabled = false;
-                        button.classList.remove('!bg-btn-control-green');
-                        button.textContent = 'Copy';
-                    }
-                }, 2000);
-
-            } catch (err) {
-                console.error('Failed to copy: ', err);
-                button.textContent = 'Error';
-            }
-            
-            document.body.removeChild(tempTextArea);
-            return;
-        }
-
         const { value, action, mode, modeSelect, copyTarget } = button.dataset;
 
         if (copyTarget) {
+            // ... (Clipboard logic for help prompts - no state changes) ...
             const targetElement = document.getElementById(copyTarget);
             if (targetElement) {
                 targetElement.select();
@@ -173,7 +115,6 @@ function initializeListeners() {
             return;
         }
         
-        // --- Modal Actions ---
         if (action === 'open-settings') {
             openSettingsModal();
             return;
@@ -187,20 +128,12 @@ function initializeListeners() {
             openShareModal();
             return;
         }
-        if (action === 'open-support') {
-            openSupportModal();
-            return;
-        }
-        if (action === 'open-feedback') {
-            openFeedbackModal();
-            return;
-        }
 
-        // --- Share Modal Actions ---
+        // --- NEW: Share Modal Actions ---
         if (action === 'copy-link') {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 button.disabled = true;
-                button.classList.add('!bg-btn-control-green'); 
+                button.classList.add('!bg-btn-control-green'); // Uses Tailwind's "!important" override
                 button.innerHTML = `
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                     Copied!
@@ -224,20 +157,20 @@ function initializeListeners() {
             }
             return;
         }
+        // --- End Share Modal Actions ---
 
-        // --- Other Actions ---
         if (modeSelect) {
             handleModeSelection(modeSelect);
             return;
         }
         
         if (action === 'restore-defaults') {
-            handleRestoreDefaults();
+            handleRestoreDefaults(); // Call the function directly
             return;
         }
 
         if (action === 'reset-rounds' && mode === 'rounds15') {
-            resetRounds15();
+            resetRounds15(); // Already saves state
             return;
         }
         if (action === 'play-demo' && mode === 'bananas') {
@@ -257,17 +190,16 @@ function initializeListeners() {
             return;
         }
         
-        // --- Value Input ---
         if (value && mode === currentMode) {
             if ((currentMode === 'bananas' || currentMode === 'follows') && /^[1-9]$/.test(value)) {
-                addValue(value); 
+                addValue(value); // Already saves state
             }
             else if (currentMode === 'piano' && (/^[1-5]$/.test(value) || /^[A-G]$/.test(value))) {
                 if (!settings.isPianoAutoplayEnabled) flashKey(value, 200);
-                addValue(value);
+                addValue(value); // Already saves state
             }
             else if (currentMode === 'rounds15' && /^(?:[1-9]|1[0-2])$/.test(value)) {
-                addValue(value); 
+                addValue(value); // Already saves state
             }
         }
     });
@@ -280,9 +212,9 @@ function initializeListeners() {
                 if (transcript && transcript.length > 0) {
                     if (event.target.dataset.mode === currentMode) {
                         processVoiceTranscript(transcript);
-                        event.target.value = ''; 
+                        event.target.value = ''; // Clear after processing
                     } else {
-                        event.target.value = ''; 
+                        event.target.value = ''; // Clear if not in the right mode
                     }
                 }
             });
@@ -304,7 +236,7 @@ function initializeListeners() {
     if (closeWelcomeModalBtn) closeWelcomeModalBtn.addEventListener('click', closeWelcomeModal);
     if (dontShowWelcomeToggle) dontShowWelcomeToggle.addEventListener('change', (e) => {
         settings.showWelcomeScreen = !e.target.checked;
-        if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen;
+        if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // Sync settings toggle
         saveState();
     });
     
@@ -318,21 +250,21 @@ function initializeListeners() {
         state.sequenceCount = newCount;
         state.nextSequenceIndex = 0;
         renderSequences();
-        saveState(); 
+        saveState(); // <<< SAVE STATE
     });
     if (followsChunkSizeSelect) followsChunkSizeSelect.addEventListener('change', (event) => {
         settings.followsChunkSize = parseInt(event.target.value);
-        saveState(); 
+        saveState(); // <<< SAVE STATE
     });
     if (followsDelaySelect) followsDelaySelect.addEventListener('change', (event) => { 
         settings.followsInterSequenceDelay = parseInt(event.target.value);
-        saveState(); 
+        saveState(); // <<< SAVE STATE
     });
     
     // Toggles
     if (showWelcomeToggle) showWelcomeToggle.addEventListener('change', (e) => {
         settings.showWelcomeScreen = e.target.checked;
-        if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen; 
+        if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen; // Sync welcome modal toggle
         saveState();
     });
     if (darkModeToggle) darkModeToggle.addEventListener('change', (e) => updateTheme(e.target.checked));
@@ -366,6 +298,11 @@ function initializeListeners() {
         updateVoiceInputVisibility();
         saveState();
     });
+    if (hapticsToggle) hapticsToggle.addEventListener('change', (e) => {
+        settings.isHapticsEnabled = e.target.checked;
+        if (settings.isHapticsEnabled) vibrate(50);
+        saveState();
+    });
     if (sliderLockToggle) sliderLockToggle.addEventListener('change', (e) => {
         settings.areSlidersLocked = e.target.checked;
         updateSliderLockState();
@@ -397,23 +334,19 @@ function initializeListeners() {
     
     // Other Modals
     if (closeHelp) closeHelp.addEventListener('click', closeHelpModal);
-    if (closeShare) closeShare.addEventListener('click', closeShareModal);
-    if (closeSupportModalBtn) closeSupportModalBtn.addEventListener('click', closeSupportModal);
-    
-    // NEW: Feedback Modal Listeners
-    if (closeFeedbackModalBtn) closeFeedbackModalBtn.addEventListener('click', closeFeedbackModal);
-    if (feedbackSendBtn) feedbackSendBtn.addEventListener('click', handleSendFeedback);
+    if (closeShare) closeShare.addEventListener('click', closeShareModal); 
 }
 
 // --- Initialization ---
 window.onload = function() {
     
-    loadState(); 
+    loadState(); // <<< LOAD STATE FIRST
     
-    assignDomElements(); 
+    assignDomElements(); // <<< ASSIGN ALL DOM VARIABLES
  
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
+        // UPDATED: Register with absolute path and explicit scope
+        navigator.serviceWorker.register('/Follow/sw.js', { scope: '/Follow/' })
             .then((registration) => {
                 console.log('Service Worker registered with scope:', registration.scope);
             })
@@ -424,10 +357,10 @@ window.onload = function() {
 
     // --- Update UI based on loaded state ---
     updateTheme(settings.isDarkMode);
-    if (bananasSpeedSlider) updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
-    if (pianoSpeedSlider) updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
-    if (rounds15SpeedSlider) updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
-    if (uiScaleSlider) updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
+    updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
+    updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
+    updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
+    updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
     updateSliderLockState();
     updateVoiceInputVisibility();
     
@@ -438,7 +371,7 @@ window.onload = function() {
     
     // --- NEW: Show Welcome Modal ---
     if (settings.showWelcomeScreen) {
-        setTimeout(openWelcomeModal, 500); 
+        setTimeout(openWelcomeModal, 500); // Give a slight delay
     }
     
     // Pre-load audio

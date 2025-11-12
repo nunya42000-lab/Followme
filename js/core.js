@@ -1,10 +1,23 @@
-// REMOVED: vibrate() function
+/**
+ * Triggers a short vibration, if enabled and supported.
+ * UPDATED: Re-added try...catch to prevent OS-level errors
+ * from halting script execution.
+ */
+function vibrate(duration = 10) {
+    if (settings.isHapticsEnabled && 'vibrate' in navigator) {
+        try {
+            navigator.vibrate(duration);
+        } catch (e) {
+            // Haptics failed, but we don't want it to break the app
+            console.warn("Haptic feedback failed.", e);
+        }
+    }
+}
 
 function addValue(value) {
-    // REMOVED: vibrate();
+    vibrate(); // <<< ADDED HAPTICS
     
     const state = getCurrentState();
-    // ... (rest of function is unchanged) ...
     const { sequences, sequenceCount } = state;
     
     if (sequenceCount === 0) return;
@@ -47,10 +60,9 @@ function addValue(value) {
 }
 
 function handleBackspace() {
-    // REMOVED: vibrate(20);
+    vibrate(20); // <<< ADDED HAPTICS
     
     const state = getCurrentState();
-    // ... (rest of function is unchanged) ...
     const { sequences, sequenceCount } = state;
     
     if (currentMode === 'rounds15') {
@@ -83,21 +95,94 @@ function handleBackspace() {
 
 
 // --- Backspace Speed Deleting Logic ---
+
 function stopSpeedDeleting() {
-    // ... (content unchanged) ...
+    if (initialDelayTimer) clearTimeout(initialDelayTimer);
+    if (speedDeleteInterval) clearInterval(speedDeleteInterval);
+    initialDelayTimer = null;
+    speedDeleteInterval = null;
 }
 
 function handleBackspaceStart(event) {
-    // ... (content unchanged) ...
+    event.preventDefault(); 
+    stopSpeedDeleting(); 
+
+    if (!settings.isSpeedDeletingEnabled) return;
+    
+    if (currentMode === 'rounds15') {
+        const demoButton = document.querySelector('#rounds15-pad button[data-action="demo"]');
+        if (demoButton && demoButton.disabled) return;
+    }
+    if (currentMode === 'follows') {
+        const demoButton = document.querySelector('#follows-pad button[data-action="play-demo"]');
+        if (demoButton && demoButton.disabled) return;
+    }
+
+    initialDelayTimer = setTimeout(() => {
+        handleBackspace();
+        speedDeleteInterval = setInterval(handleBackspace, SPEED_DELETE_INTERVAL_MS);
+        initialDelayTimer = null; 
+    }, SPEED_DELETE_INITIAL_DELAY);
 }
 
 function handleBackspaceEnd() {
-    // ... (content unchanged) ...
+    if (initialDelayTimer !== null) {
+        stopSpeedDeleting();
+        handleBackspace(); 
+    } 
+    else if (!settings.isSpeedDeletingEnabled) {
+        handleBackspace();
+    } 
+    else {
+        stopSpeedDeleting();
+    }
 }
 
 // --- Voice Input Functions (TEXT-BASED) ---
+
+/**
+ * Processes the transcript from the text input field.
+ * This function only processes VALUES, not commands.
+ */
 function processVoiceTranscript(transcript) {
-    // ... (content unchanged) ...
+    if (!transcript) return;
+    
+    const cleanTranscript = transcript.toLowerCase().replace(/[\.,]/g, '').trim();
+    const words = cleanTranscript.split(' ');
+    let valuesAdded = 0;
+
+    // --- Check for Sequence Values ---
+    for (const word of words) {
+        let value = VOICE_VALUE_MAP[word];
+        
+        if (!value) {
+             const upperWord = word.toUpperCase();
+             if (/^[1-9]$/.test(word) || /^(1[0-2])$/.test(word)) { // 1-12
+                value = word;
+             } else if (/^[A-G]$/.test(upperWord) || /^[1-5]$/.test(word)) { // A-G, 1-5
+                value = upperWord;
+             }
+        }
+
+        if (value) {
+            if (currentMode === 'bananas' || currentMode === 'follows') {
+                if (/^[1-9]$/.test(value)) {
+                    addValue(value);
+                    valuesAdded++;
+                }
+            } else if (currentMode === 'piano') {
+                if ((/^[1-5]$/.test(value) || /^[A-G]$/.test(value))) {
+                    addValue(value);
+                    valuesAdded++;
+                }
+            } else if (currentMode === 'rounds15') {
+                if (/^(?:[1-9]|1[0-2])$/.test(value)) {
+                    addValue(value);
+                    valuesAdded++;
+                }
+            }
+        }
+    }
 }
 
 // --- Restore Defaults Function ---
@@ -131,84 +216,12 @@ function handleRestoreDefaults() {
     if (audioPlaybackToggle) audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled;
     if (voiceInputToggle) voiceInputToggle.checked = settings.isVoiceInputEnabled;
     if (sliderLockToggle) sliderLockToggle.checked = settings.areSlidersLocked;
-    // hapticsToggle REMOVED
+    if (hapticsToggle) hapticsToggle.checked = settings.isHapticsEnabled;
 
     // Sliders
     if (bananasSpeedSlider) bananasSpeedSlider.value = settings.bananasSpeedMultiplier * 100;
     updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
     if (pianoSpeedSlider) pianoSpeedSlider.value = settings.pianoSpeedMultiplier * 100;
-    updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
-    if (rounds15SpeedSlider) rounds15SpeedSlider.value = settings.rounds15SpeedMultiplier * 100;
-    updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);
-    if (uiScaleSlider) uiScaleSlider.value = settings.uiScaleMultiplier * 100;
-    updateScaleDisplay(settings.uiScaleMultiplier, uiScaleDisplay);
-
-    // Follows Selects
-    if (followsCountSelect) followsCountSelect.value = appState['follows'].sequenceCount;
-    if (followsChunkSizeSelect) followsChunkSizeSelect.value = settings.followsChunkSize;
-    if (followsDelaySelect) followsDelaySelect.value = settings.followsInterSequenceDelay;
-    
-    // 4. Update the main UI
-    updateMode(settings.currentMode); // This also calls renderSequences
-    
-    // 5. Close the modal
-    closeSettingsModal();
-}
-
-// --- NEW: Feedback Function ---
-function handleSendFeedback() {
-    if (!feedbackTextarea || !feedbackSendBtn) return;
-
-    const text = feedbackTextarea.value.trim();
-    if (text.length === 0) {
-        alert("Please enter a message before sending.");
-        return;
-    }
-
-    // Disable button and show sending state
-    feedbackSendBtn.disabled = true;
-    feedbackSendBtn.textContent = 'Sending...';
-
-    try {
-        const db = firebase.firestore();
-        db.collection('feedback').add({
-            text: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            userAgent: navigator.userAgent,
-            appVersion: '1.0' // You can update this later
-        })
-        .then(() => {
-            // Success
-            feedbackSendBtn.classList.remove('bg-primary-app');
-            feedbackSendBtn.classList.add('!bg-btn-control-green');
-            feedbackSendBtn.textContent = 'Sent!';
-            
-            setTimeout(() => {
-                closeFeedbackModal();
-            }, 1500); // Close modal after 1.5s
-        })
-        .catch((error) => {
-            // Failure
-            console.error("Error writing document: ", error);
-            feedbackSendBtn.classList.remove('bg-primary-app');
-            feedbackSendBtn.classList.add('!bg-btn-control-red');
-            feedbackSendBtn.textContent = 'Error!';
-            
-            setTimeout(() => {
-                feedbackSendBtn.disabled = false;
-                feedbackSendBtn.classList.remove('!bg-btn-control-red');
-                feedbackSendBtn.classList.add('bg-primary-app');
-                feedbackSendBtn.textContent = 'Send';
-            }, 3000); // Reset button after 3s
-        });
-    } catch (e) {
-        console.error("Firebase is not initialized or failed:", e);
-        alert("Error: Could not connect to feedback service.");
-        feedbackSendBtn.disabled = false;
-        feedbackSendBtn.textContent = 'Send';
-    }
-}
-.pianoSpeedMultiplier * 100;
     updateSpeedDisplay(settings.pianoSpeedMultiplier, pianoSpeedDisplay);
     if (rounds15SpeedSlider) rounds15SpeedSlider.value = settings.rounds15SpeedMultiplier * 100;
     updateSpeedDisplay(settings.rounds15SpeedMultiplier, rounds15SpeedDisplay);

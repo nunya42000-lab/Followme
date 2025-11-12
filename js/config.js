@@ -50,32 +50,6 @@ const DEFAULT_SETTINGS = {
     followsChunkSize: 3, 
     followsInterSequenceDelay: 500,
     currentMode: 'bananas',
-    // isHapticsEnabled: true, // REMOVED
-    showWelcomeScreen: true,
+    isHapticsEnabled: true, // NEW
+    showWelcomeScreen: true, // NEW
 };
-
-// --- NEW: Firebase Configuration (Compat Version) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyBQ1BNfiSXzeGk4KOJu0YTTolMED3qikQs",
-  authDomain: "follow-me-pwa.firebaseapp.com",
-  projectId: "follow-me-pwa",
-  storageBucket: "follow-me-pwa.firebasestorage.app",
-  messagingSenderId: "556776814393",
-  appId: "1:556776814393:web:ab503d80e8569180789ae8",
-  measurementId: "G-FN9Y8WVHCL"
-};
-
-// Initialize Firebase
-// We check if firebase is defined to avoid errors if the script didn't load
-if (typeof firebase !== 'undefined') {
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log("Firebase initialized successfully");
-    } catch (e) {
-        console.error("Firebase initialization error:", e);
-    }
-} else {
-    console.error("Firebase SDK not loaded. Check index.html");
-}
-
-

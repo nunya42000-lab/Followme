@@ -1,38 +1,149 @@
 // --- UI Rendering ---
 
 function renderSequences() {
-    // ... (content unchanged) ...
+    const state = getCurrentState();
+    if (!state) return; // Guard against missing state
+    
+    const { sequences, sequenceCount } = state;
+    const activeSequences = sequences.slice(0, sequenceCount);
+    if (sequenceContainer) sequenceContainer.innerHTML = '';
+    
+    const currentTurnIndex = state.nextSequenceIndex % sequenceCount;
+
+    let layoutClasses = 'gap-4 flex-grow mb-6 transition-all duration-300 pt-1 ';
+
+    if (currentMode === 'bananas') {
+        layoutClasses += ' flex flex-col max-w-xl mx-auto';
+    } else if (currentMode === 'follows') {
+        if (sequenceCount === 2) {
+            layoutClasses += ' grid grid-cols-2 max-w-3xl mx-auto';
+        } else if (sequenceCount === 3) {
+            layoutClasses += ' grid grid-cols-3 max-w-4xl mx-auto';
+        } else if (sequenceCount === 4) {
+            layoutClasses += ' grid grid-cols-4 max-w-5xl mx-auto';
+        }
+    } else if (currentMode === 'piano' || currentMode === 'rounds15') {
+        layoutClasses += ' flex flex-col max-w-2xl mx-auto';
+    }
+    if (sequenceContainer) sequenceContainer.className = layoutClasses;
+
+    if (currentMode === 'rounds15') {
+        const roundDisplay = document.createElement('div');
+        roundDisplay.className = 'text-center text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100';
+        roundDisplay.id = 'rounds15-round-display';
+        roundDisplay.textContent = `Round: ${state.currentRound} / ${state.maxRound}`;
+        if (sequenceContainer) sequenceContainer.appendChild(roundDisplay);
+    }
+
+    let numColumns = 0;
+    if (currentMode === 'bananas') numColumns = 5;
+    else if (currentMode === 'follows') {
+        if (sequenceCount === 2) numColumns = 4;
+        else if (sequenceCount === 3) numColumns = 4;
+        else if (sequenceCount === 4) numColumns = 3; 
+    } else if (currentMode === 'piano' || currentMode === 'rounds15') numColumns = 5; 
+    
+    let gridClass = numColumns > 0 ? `grid grid-cols-${numColumns}` : 'flex flex-wrap';
+    
+    const baseSize = 40;
+    const baseFont = 1.1;
+    const newSize = baseSize * settings.uiScaleMultiplier;
+    const newFont = baseFont * settings.uiScaleMultiplier;
+    const sizeStyle = `height: ${newSize}px; line-height: ${newSize}px; font-size: ${newFont}rem;`;
+
+    activeSequences.forEach((set, index) => {
+        const isCurrent = currentTurnIndex === index;
+        const sequenceDiv = document.createElement('div');
+        
+        const originalClasses = `p-4 rounded-xl shadow-md transition-all duration-200 ${isCurrent ? 'bg-accent-app scale-[1.02] shadow-lg text-gray-900' : 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100'}`;
+        sequenceDiv.className = originalClasses;
+        sequenceDiv.dataset.originalClasses = originalClasses;
+        
+        sequenceDiv.innerHTML = `
+            <div class="${gridClass} gap-2 min-h-[50px]"> 
+                ${set.map(val => `
+                    <span class="number-box bg-secondary-app text-white rounded-xl text-center shadow-sm"
+                          style="${sizeStyle}">
+                        ${val}
+                    </span>
+                `).join('')}
+            </div>
+        `;
+        if (sequenceContainer) sequenceContainer.appendChild(sequenceDiv);
+    });
 }
 
-// --- Welcome Modal Functions ---
+// --- NEW: Welcome Modal Functions ---
 function openWelcomeModal() {
-    // ... (content unchanged) ...
+    if (!welcomeModal) return;
+    if (dontShowWelcomeToggle) dontShowWelcomeToggle.checked = !settings.showWelcomeScreen;
+    welcomeModal.classList.remove('opacity-0', 'pointer-events-none');
+    welcomeModal.querySelector('div').classList.remove('scale-90');
 }
 
 function closeWelcomeModal() {
-    // ... (content unchanged) ...
+    if (!welcomeModal) return;
+    if (dontShowWelcomeToggle) {
+        settings.showWelcomeScreen = !dontShowWelcomeToggle.checked;
+        if (showWelcomeToggle) showWelcomeToggle.checked = settings.showWelcomeScreen; // Sync settings toggle
+        saveState(); // Save the setting
+    }
+    welcomeModal.querySelector('div').classList.add('scale-90');
+    welcomeModal.classList.add('opacity-0');
+    setTimeout(() => welcomeModal.classList.add('pointer-events-none'), 300);
 }
 
 // --- Settings Panel Logic ---
 
 function renderModeDropdown() {
-    // ... (content unchanged) ...
+    if (!settingsModeDropdown) return;
+    settingsModeDropdown.innerHTML = MODES.map(modeKey => `
+        <button data-mode-select="${modeKey}" 
+                class="w-full text-left px-4 py-3 text-lg font-semibold 
+                    ${currentMode === modeKey ? 'bg-primary-app text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'} 
+                    transition-colors duration-150">
+            ${MODE_LABELS[modeKey]}
+        </button>
+    `).join('');
 }
 
 function toggleModeDropdown(event) {
-    // ... (content unchanged) ...
+    event.stopPropagation();
+    if (!settingsModeDropdown || !settingsModeToggleButton || !settingsModal) return;
+    
+    if (settingsModeDropdown.classList.contains('hidden')) {
+        renderModeDropdown();
+        const rect = settingsModeToggleButton.getBoundingClientRect();
+        const modalRect = settingsModal.querySelector('div').getBoundingClientRect();
+        settingsModeDropdown.style.position = 'absolute';
+        settingsModeDropdown.style.left = `${rect.left - modalRect.left}px`;
+        settingsModeDropdown.style.width = `${rect.width}px`;
+        settingsModeDropdown.style.top = `${rect.bottom - modalRect.top}px`;
+        
+        settingsModeDropdown.classList.remove('hidden');
+        setTimeout(() => settingsModeDropdown.classList.remove('opacity-0'), 10);
+        document.addEventListener('click', closeModeDropdownOnOutsideClick, true);
+    } else {
+        closeModeDropdown();
+    }
 }
 
 function closeModeDropdown() {
-    // ... (content unchanged) ...
+    if (!settingsModeDropdown) return;
+    settingsModeDropdown.classList.add('opacity-0');
+    setTimeout(() => settingsModeDropdown.classList.add('hidden'), 200);
+    document.removeEventListener('click', closeModeDropdownOnOutsideClick, true);
 }
 
 function closeModeDropdownOnOutsideClick(event) {
-    // ... (content unchanged) ...
+    if (!event.target.closest('#settings-mode-toggle-button') && !event.target.closest('#settings-mode-dropdown')) {
+        closeModeDropdown();
+    }
 }
 
 function handleModeSelection(newMode) {
-    // ... (content unchanged) ...
+    closeModeDropdown();
+    updateMode(newMode);
 }
 
 function openSettingsModal() {
@@ -57,7 +168,7 @@ function openSettingsModal() {
     if (audioPlaybackToggle) audioPlaybackToggle.checked = settings.isAudioPlaybackEnabled; 
     if (voiceInputToggle) voiceInputToggle.checked = settings.isVoiceInputEnabled;
     if (sliderLockToggle) sliderLockToggle.checked = settings.areSlidersLocked; 
-    // hapticsToggle REMOVED
+    if (hapticsToggle) hapticsToggle.checked = settings.isHapticsEnabled;
 
     if (bananasSpeedSlider) bananasSpeedSlider.value = settings.bananasSpeedMultiplier * 100;
     updateSpeedDisplay(settings.bananasSpeedMultiplier, bananasSpeedDisplay);
@@ -85,7 +196,7 @@ function closeSettingsModal() {
     }
 }
 
-// --- Help Modal Logic ---
+// --- UPDATED: Help Modal Logic (with Tabs) ---
 
 function openHelpModal() {
     // Generate content for all tabs
@@ -130,11 +241,38 @@ function closeHelpModal() {
 }
 
 function handleHelpTabClick(event) {
-    // ... (content unchanged) ...
+    const button = event.target.closest('button[data-tab]');
+    if (button) {
+        switchHelpTab(button.dataset.tab);
+    }
 }
 
 function switchHelpTab(tabId) {
-    // ... (content unchanged) ...
+    // Hide all content
+    if (helpContentContainer) {
+        helpContentContainer.querySelectorAll('.help-tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+    }
+    // Deactivate all buttons
+    if (helpTabNav) {
+        helpTabNav.querySelectorAll('.help-tab-button').forEach(btn => {
+            btn.classList.remove('active-tab');
+        });
+    }
+    
+    // Show selected content
+    const content = document.getElementById(`help-tab-${tabId}`);
+    if (content) {
+        content.classList.remove('hidden');
+    }
+    // Activate selected button
+    if (helpTabNav) {
+        const button = helpTabNav.querySelector(`button[data-tab="${tabId}"]`);
+        if (button) {
+            button.classList.add('active-tab');
+        }
+    }
 }
 
 function generateGeneralHelp() {
@@ -151,8 +289,6 @@ function generateGeneralHelp() {
             <li><span class="font-bold">Backspace (←):</span> Removes the last entered value.</li>
             <li><span class="font-bold">Settings (⚙️):</span> Opens the main settings panel, where you can change modes, adjust speeds, and toggle features.</li>
             <li><span class="font-bold">Share (📤):</span> Inside Settings, this button shows a QR code and share options to open the app on another device.</li>
-            <li><span class="font-bold">Support (☕️):</span> Inside Settings, this button opens a modal with ways to support the developer.</li>
-            <li><span class="font-bold">Feedback (💬):</span> Inside Settings, this button opens a form to send a private message to the developer.</li>
         </ul>
         
         <h4 class="text-primary-app">Global Features</h4>
@@ -160,149 +296,7 @@ function generateGeneralHelp() {
             <li><span class="font-bold">Voice Input (🎤):</span> When enabled in Settings, a text field appears. Tap it to use your <strong>keyboard's</strong> microphone (dictation) to enter numbers. The sequence updates instantly.</li>
             <li><span class="font-bold">Speed Deleting:</span> Hold the backspace key to quickly delete many entries (On by default).</li>
             <li><span class="font-bold">Audio Playback:</span> Speaks the sequence during demo playback (On by default).</li>
-        </ul>
-    `;
-}
-
-function generateModesHelp() {
-    // ... (content unchanged) ...
-}
-
-function generateSettingsHelp() {
-    const container = document.getElementById('help-tab-settings');
-    if (!container) return;
-    container.innerHTML = `
-        <p>The Settings panel (⚙️) is your control center. Here's what everything does.</p>
-        
-        <h4 class="text-primary-app">Mode & Follows</h4>
-        <ul>
-            <li><span class="font-bold">Current Mode:</span> Tap this button to open a dropdown and switch between Bananas, Follows, Piano, and 15 rounds.</li>
-            <li><span class="font-bold">Follows Sequences:</span> (Follows mode only) Choose 2, 3, or 4 active sequences.</li>
-            <li><span class="font-bold">Numbers per sequence:</span> (Follows mode only) Sets the "chunk size" for playback (e.g., play 3 from S1, then 3 from S2...).</li>
-            <li><span class="font-bold">Delay between sequences:</span> (Follows mode only) Adds a pause (0.0s - 1.0s) when the demo switches between sequences.</li>
-        </ul>
-        
-        <h4 class="text-primary-app">Toggles</h4>
-        <ul>
-            <li><span class="font-bold">Show Welcome Screen:</span> Toggles the introductory pop-up screen when you first open the app.</li>
-            <li><span class="font-bold">Dark Mode:</span> Toggles the entire app between Dark and Light themes.</li>
-            <li><span class="font-bold">Speed Deleting:</span> Lets you hold Backspace (←) to delete rapidly.</li>
-            <li><span class="font-bold">Audio Playback (Speak):</span> Speaks the numbers/notes during demo playback.</li>
-            <li><span class="font-bold">Voice Input (Keyboard):</span> Shows/hides the 🎤 text input field for keyboard dictation.</li>
-            <li><span class="font-bold">Lock Sliders:</span> Prevents accidental changes to the speed and size sliders.</li>
-            <li><span class="font-bold">Mode-Specific Autoplay:</span> Each mode (Bananas, Follows, Piano) has its own toggle to control if it plays back automatically after an input.</li>
-            <li><span class="font-bold">15 rounds Auto-Clear/Advance:</span> Toggles if the app automatically clears the sequence and moves to the next round after playback.</li>
-        </ul>
-        
-        <h4 class="text-primary-app">Playback & Size Controls</h4>
-        <ul>
-            <li><span class="font-bold">Speed Sliders:</span> Each mode group has its own speed control (50% to 150%) for demo playback.</li>
-            <li><span class="font-bold">Sequence Size:</span> Adjusts the visual size of the number boxes in the sequence display (50% to 200%).</li>
-        </ul>
-        
-        <h4 class="text-primary-app">Other</h4>
-        <ul>
-            <li><span class="font-bold">Restore Defaults:</span> Resets *all* settings (including 'Show Welcome Screen') and clears *all* saved sequences back to their original state.</li>
-        </ul>
-    `;
-}
-
-function generatePromptsHelp() {
-    // ... (content unchanged) ...
-}
-    
-// --- Share Modal Functions ---
-function openShareModal() {
-    // ... (content unchanged) ...
-}
-
-function closeShareModal() {
-    // ... (content unchanged) ...
-}
-
-// --- Support Modal Functions ---
-function openSupportModal() {
-    // ... (content unchanged) ...
-}
-
-function closeSupportModal() {
-    // ... (content unchanged) ...
-}
-
-// --- NEW: Feedback Modal Functions ---
-function openFeedbackModal() {
-    closeSettingsModal();
-    if (feedbackModal) {
-        // Reset form
-        if (feedbackTextarea) feedbackTextarea.value = '';
-        if (feedbackSendBtn) {
-            feedbackSendBtn.disabled = false;
-            feedbackSendBtn.textContent = 'Send';
-            feedbackSendBtn.classList.remove('!bg-btn-control-green', '!bg-btn-control-red');
-            feedbackSendBtn.classList.add('bg-primary-app');
-        }
-        
-        feedbackModal.classList.remove('opacity-0', 'pointer-events-none');
-        feedbackModal.querySelector('div').classList.remove('scale-90');
-    }
-}
-
-function closeFeedbackModal() {
-    if (feedbackModal) {
-        feedbackModal.querySelector('div').classList.add('scale-90');
-        feedbackModal.classList.add('opacity-0');
-        setTimeout(() => feedbackModal.classList.add('pointer-events-none'), 300);
-    }
-}
-    
-// --- Theme, Speed, and Scale Control ---
-function updateTheme(isDark) {
-    // ... (content unchanged) ...
-}
-
-function updateModeSpeed(modeKey, multiplier) {
-    // ... (content unchanged) ...
-}
-
-function updateSpeedDisplay(multiplier, displayElement) {
-    // ... (content unchanged) ...
-}
-
-function updateScaleDisplay(multiplier, displayElement) {
-    // ... (content unchanged) ...
-}
-
-function updateSliderLockState() {
-    // ... (content unchanged) ...
-}
-
-function updateMode(newMode) {
-    // ... (content unchanged) ...
-}
-
-function updateVoiceInputVisibility() {
-    // ... (content unchanged) ...
-}
-    
-// --- Generic Modal/Message Box Implementation ---
-function showModal(title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel') {
-    // ... (content unchanged) ...
-}
-
-function closeModal() {
-    // ... (content unchanged) ...
-}
-i><span class="font-bold">Backspace (←):</span> Removes the last entered value.</li>
-            <li><span class="font-bold">Settings (⚙️):</span> Opens the main settings panel, where you can change modes, adjust speeds, and toggle features.</li>
-            <li><span class="font-bold">Share (📤):</span> Inside Settings, this button shows a QR code and share options to open the app on another device.</li>
-            <li><span class="font-bold">Support (☕️):</span> Inside Settings, this button opens a modal with ways to support the developer.</li>
-        </ul>
-        
-        <h4 class="text-primary-app">Global Features</h4>
-        <ul>
-            <li><span class="font-bold">Voice Input (🎤):</span> When enabled in Settings, a text field appears. Tap it to use your <strong>keyboard's</strong> microphone (dictation) to enter numbers. The sequence updates instantly.</li>
-            <li><span class="font-bold">Speed Deleting:</span> Hold the backspace key to quickly delete many entries (On by default).</li>
-            <li><span class="font-bold">Audio Playback:</span> Speaks the sequence during demo playback (On by default).</li>
+            <li><span class="font-bold">Vibration (Haptics):</span> Provides a short vibration on key presses for tactile feedback (On by default).</li>
         </ul>
     `;
 }
@@ -373,6 +367,7 @@ function generateSettingsHelp() {
             <li><span class="font-bold">Speed Deleting:</span> Lets you hold Backspace (←) to delete rapidly.</li>
             <li><span class="font-bold">Audio Playback (Speak):</span> Speaks the numbers/notes during demo playback.</li>
             <li><span class="font-bold">Voice Input (Keyboard):</span> Shows/hides the 🎤 text input field for keyboard dictation.</li>
+            <li><span class="font-bold">Vibration (Haptics):</span> Enables/disables tactile feedback on key presses.</li>
             <li><span class="font-bold">Lock Sliders:</span> Prevents accidental changes to the speed and size sliders.</li>
             <li><span class="font-bold">Mode-Specific Autoplay:</span> Each mode (Bananas, Follows, Piano) has its own toggle to control if it plays back automatically after an input.</li>
             <li><span class="font-bold">15 rounds Auto-Clear/Advance:</span> Toggles if the app automatically clears the sequence and moves to the next round after playback.</li>
@@ -409,7 +404,7 @@ function generatePromptsHelp() {
 function openShareModal() {
     closeSettingsModal();
     if (shareModal) {
-        // Check for Web Share API
+        // NEW: Check for Web Share API
         if (navigator.share) {
             if (nativeShareButton) nativeShareButton.classList.remove('hidden');
         } else {
@@ -438,36 +433,8 @@ function closeShareModal() {
         setTimeout(() => shareModal.classList.add('pointer-events-none'), 300);
     }
 }
-
-// --- NEW: Support Modal Functions ---
-function openSupportModal() {
-    closeSettingsModal();
-    if (supportModal) {
-        // Reset all copy buttons
-        supportModal.querySelectorAll('.copy-button').forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('!bg-btn-control-green');
-            btn.textContent = 'Copy';
-        });
-        
-        supportModal.classList.remove('opacity-0', 'pointer-events-none');
-        supportModal.querySelector('div').classList.remove('scale-90');
-    }
-}
-
-function closeSupportModal() {
-    if (supportModal) {
-        supportModal.querySelector('div').classList.add('scale-9D0');
-        supportModal.classList.add('opacity-0');
-        setTimeout(() => supportModal.classList.add('pointer-events-none'), 300);
-    }
-}
     
 // --- Theme, Speed, and Scale Control ---
-
-// ... (functions updateTheme, updateModeSpeed, updateSpeedDisplay, 
-//     updateScaleDisplay, updateSliderLockState, updateMode, 
-//     updateVoiceInputVisibility are all unchanged) ...
 
 function updateTheme(isDark) {
     settings.isDarkMode = isDark;
@@ -537,7 +504,7 @@ function updateVoiceInputVisibility() {
         });
     }
 }
-    
+
 // --- Generic Modal/Message Box Implementation ---
 
 function showModal(title, message, onConfirm, confirmText = 'OK', cancelText = 'Cancel') {
@@ -579,4 +546,4 @@ function closeModal() {
         customModal.classList.add('opacity-0');
         setTimeout(() => customModal.classList.add('pointer-events-none'), 300);
     }
-}
+        }
