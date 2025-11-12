@@ -7,7 +7,7 @@
     
     <meta name="theme-color" content="#4f46e5">
 
-    <link rel="manifest" href="/Follow/manifest.json">
+    <link rel="manifest" href="./manifest.json">
 
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/4f46e5/ffffff?text=F&font=inter">
 
@@ -27,12 +27,12 @@
                         'secondary-app': '#6366f1',
                         'accent-app': '#a5b4fc',
                         
-                        // Control Button Colors (fixed for consistency)
+                        // Control Button Colors
                         'btn-control-red': '#dc2626', 
                         'btn-control-red-active': '#b91c1c',
                         'btn-control-blue': '#2563eb', 
                         'btn-control-blue-active': '#1e40af',
-                        'btn-control-green': '#10b981', // For "Copied!"
+                        'btn-control-green': '#10b981', 
                         
                         'cashapp-green': '#00d632',
                         'cashapp-green-active': '#00b82b',
@@ -44,43 +44,136 @@
         }
     </script>
     
-    <link rel="stylesheet" href="/Follow/style.css">
+    <link rel="stylesheet" href="./style.css">
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 </head>
 <body class="dark min-h-screen flex flex-col font-sans p-4">
 
+    <!-- Welcome Modal -->
     <div id="welcome-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-lg w-full transform scale-90 transition-transform duration-300 text-gray-900 dark:text-white">
+            <h3 class="text-2xl font-bold mb-4 text-center">👋 Welcome to Follow Me!</h3>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">
+                This is a simple tool to help you track and memorize sequences. Here's a quick guide:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-gray-700 dark:text-gray-300 space-y-2">
+                <li><strong>Pick Your Mode:</strong> Use the <strong>Settings (⚙️)</strong> button on the keypad.</li>
+                <li><strong>Enter Numbers:</strong> Tap the keypad to add numbers.</li>
+                <li><strong>Play it Back:</strong> Hit <strong>Play (▶)</strong> to watch and hear the sequence.</li>
+                <li><strong>Full Details:</strong> Open <strong>Settings (⚙️)</strong> then <strong>Help (❓)</strong>.</li>
+            </ul>
+            <div class="flex justify-between items-center">
+                <label for="dont-show-welcome-toggle" class="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <input type="checkbox" id="dont-show-welcome-toggle" class="mr-2 h-4 w-4 rounded text-primary-app focus:ring-primary-app">
+                    Don't show this again
+                </label>
+                <button id="close-welcome-modal" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Get Started!</button>
+            </div>
         </div>
+    </div>
 
+    <!-- Custom Modal -->
     <div id="custom-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-900 dark:text-white"></h3>
+            <p id="modal-message" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"></button>
+                <button id="modal-confirm" class="px-4 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors"></button>
+            </div>
         </div>
+    </div>
     
+    <!-- Share Modal -->
     <div id="share-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        </div>
-    
-    <div id="support-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        </div>
-
-    <div id="feedback-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-2xl max-w-sm w-full transform scale-90 transition-transform duration-300 text-center">
+            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Share This App</h3>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">Scan the code to open this app on another device.</p>
+            <img src="./1000021086.jpg" alt="Share QR Code" class="w-64 h-64 mx-auto rounded-lg mb-6 border-4 border-white dark:border-gray-700">
             
+            <div class="flex flex-col space-y-3 mb-6">
+                <button id="native-share-button" data-action="native-share" class="hidden w-full px-6 py-3 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path></svg>
+                    Share...
+                </button>
+                <button id="copy-link-button" data-action="copy-link" class="w-full px-6 py-3 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                    Copy Link
+                </button>
+            </div>
+            <button id="close-share" class="w-full px-6 py-2 text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-semibold">Close</button>
+        </div>
+    </div>
+    
+    <!-- Support Modal -->
+    <div id="support-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
             <div class="p-6 pb-4">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 flex items-center">
-                    <span class="text-2xl mr-3">💬</span>
-                    Send Feedback
+                    <span class="text-2xl mr-3">☕️</span> Support the Developer
                 </h3>
             </div>
+            <div class="p-6 pt-2 overflow-y-auto flex-grow">
+                <p class="text-gray-700 dark:text-gray-300 mb-6">
+                    If you find this tool useful, thank you for considering supporting its development! This app will always be free and ad-free.
+                </p>
+                <div class="space-y-4">
+                    <a href="https://cash.app/$jwo83" target="_blank" rel="noopener noreferrer" class="payment-button bg-cashapp-green hover:bg-cashapp-green-active">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Pay with Cash App
+                    </a>
+                    <a href="https://paypal.me/Oyster981" target="_blank" rel="noopener noreferrer" class="payment-button bg-paypal-blue hover:bg-paypal-blue-active">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        Pay with PayPal
+                    </a>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-semibold text-lg text-gray-900 dark:text-white">Bitcoin (BTC)</span>
+                            <div class="flex space-x-2">
+                                <a href="bitcoin:bc1quqwthymtfw8ju4tyw5udt8kq2grulhlun9x3jz" class="px-4 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-sm">Open</a>
+                                <button data-copy-target="btc" class="copy-button px-4 py-2 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-sm">Copy</button>
+                            </div>
+                        </div>
+                        <textarea readonly class="address-box" data-copyable-id="btc" rows="2">bc1quqwthymtfw8ju4tyw5udt8kq2grulhlun9x3jz</textarea>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-semibold text-lg text-gray-900 dark:text-white">Lightning Invoice</span>
+                            <div class="flex space-x-2">
+                                <a href="lightning:lnbc1p5s454tdqdgdshx6pqg9c8qpp5xhz0e9ywr5yyrnezqjr4g2tekpjh5z8lymdmgzzn86zpu0w7aa3ssp5yvvt4vu8ssgnfd7ka0lrfkkr4tm9k2p8n7hrssyp70ukyve3wdks9qrsgqcqpcxqy8ayqrzjqfzhphca8jlc5zznw52mnqxsnymltjgg3lxe4ul82g42vw0jpkgkwz0tc5qqqgqqq5qqqqqqqqqqqqqq9grzjqv06k0m23t593pngl0jt7n9wznp64fqngvctz7vts8nq4tukvtljqz7ctcqqqzqqqqqqqqqqqqqqqqqq9gqmvuv4gkwud6l54haunam2wk2kl2eqld9m07v2rw6z7rq2xg73a3frxrzxam2ks52rngqahjhv5g3vvx8nhtn8uz3glq8u8cgnsaz2cq0seqzg" class="px-4 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold text-sm">Open</a>
+                                <button data-copy-target="lightning" class="copy-button px-4 py-2 text-white bg-btn-control-blue rounded-lg hover:bg-btn-control-blue-active transition-colors font-semibold text-sm">Copy</button>
+                            </div>
+                        </div>
+                        <textarea readonly class="address-box" data-copyable-id="lightning" rows="5">lnbc1p5s454tdqdgdshx6pqg9c8qpp5xhz0e9ywr5yyrnezqjr4g2tekpjh5z8lymdmgzzn86zpu0w7aa3ssp5yvvt4vu8ssgnfd7ka0lrfkkr4tm9k2p8n7hrssyp70ukyve3wdks9qrsgqcqpcxqy8ayqrzjqfzhphca8jlc5zznw52mnqxsnymltjgg3lxe4ul82g42vw0jpkgkwz0tc5qqqgqqq5qqqqqqqqqqqqqq9grzjqv06k0m23t593pngl0jt7n9wznp64fqngvctz7vts8nq4tukvtljqz7ctcqqqzqqqqqqqqqqqqqqqqqq9gqmvuv4gkwud6l54haunam2wk2kl2eqld9m07v2rw6z7rq2xg73a3frxrzxam2ks52rngqahjhv5g3vvx8nhtn8uz3glq8u8cgnsaz2cq0seqzg</textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end">
+                    <button id="close-support-modal" class="px-6 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="p-6 pb-4">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3 flex items-center">
+                    <span class="text-2xl mr-3">💬</span> Send Feedback
+                </h3>
+            </div>
             <div class="p-6 pt-2 overflow-y-auto flex-grow">
                 <p class="text-gray-700 dark:text-gray-300 mb-4">
-                    Found a bug or have a feature idea? Let the developer know! Your feedback is private and sent directly.
+                    Found a bug or have a feature idea? Let the developer know! Your feedback is private.
                 </p>
                 <textarea id="feedback-textarea" class="feedback-textarea" rows="6" placeholder="Type your message..."></textarea>
             </div>
-            
             <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex justify-between">
                     <button id="close-feedback-modal" class="px-6 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold">Cancel</button>
@@ -90,37 +183,25 @@
         </div>
     </div>
     
+    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
-            
             <div class="p-6 pb-4 relative">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-3">App Settings ⚙️</h3>
-                <button id="open-feedback-button" data-action="open-feedback" class="absolute top-4 right-40 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Send Feedback">
-                    💬
-                </button>
-                <button id="open-support-button" data-action="open-support" class="absolute top-4 right-28 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Support Developer">
-                    ☕️
-                </button>
-                <button id="open-share-button" data-action="open-share" class="absolute top-4 right-16 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Share App">
-                    📤
-                </button>
-                <button id="open-help-button" data-action="open-help" class="absolute top-4 right-4 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="View Help & Instructions">
-                    ❓
-                </button>
+                <button id="open-feedback-button" data-action="open-feedback" class="absolute top-4 right-40 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Send Feedback">💬</button>
+                <button id="open-support-button" data-action="open-support" class="absolute top-4 right-28 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Support Developer">☕️</button>
+                <button id="open-share-button" data-action="open-share" class="absolute top-4 right-16 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="Share App">📤</button>
+                <button id="open-help-button" data-action="open-help" class="absolute top-4 right-4 text-gray-700 dark:text-gray-300 hover:text-primary-app dark:hover:text-primary-app transition-colors text-2xl font-bold focus:outline-none" title="View Help & Instructions">❓</button>
             </div>
 
             <div class="p-6 pt-2 overflow-y-auto flex-grow">
-                
                 <div class="mb-6">
                     <label class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Current Mode</label>
-                    <button id="settings-mode-toggle-button" 
-                            data-action="mode-toggle-dropdown"
-                            class="btn-input !bg-primary-app hover:!bg-secondary-app text-white text-base font-extrabold px-4 flex items-center justify-between w-full h-12">
+                    <button id="settings-mode-toggle-button" data-action="mode-toggle-dropdown" class="btn-input !bg-primary-app hover:!bg-secondary-app text-white text-base font-extrabold px-4 flex items-center justify-between w-full h-12">
                         Loading...
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div id="settings-mode-dropdown" class="absolute mt-2 w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden z-20 hidden">
-                        </div>
+                    <div id="settings-mode-dropdown" class="absolute mt-2 w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden z-20 hidden"></div>
                 </div>
                 
                 <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -133,7 +214,6 @@
                             <option value="4">4 Sequences</option>
                         </select>
                     </div>
-                    
                     <div id="follows-chunk-setting" class="mb-6">
                         <label for="follows-chunk-size-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Numbers per sequence (playback)</label>
                         <select id="follows-chunk-size-select" class="w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
@@ -143,7 +223,6 @@
                             <option value="5">5</option>
                         </select>
                     </div>
-
                     <div id="follows-delay-setting" class="mb-6">
                         <label for="follows-delay-select" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Delay between sequences (playback)</label>
                         <select id="follows-delay-select" class="w-full h-12 px-4 py-2 text-lg font-semibold text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-app">
@@ -250,7 +329,6 @@
 
                 <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <p class="block text-gray-700 dark:text-gray-300 text-xl font-bold mb-4">Playback & Size Controls</p>
-                    
                     <div class="mb-6">
                         <label for="bananas-speed-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Bananas/Follows Play Speed</label>
                         <input type="range" id="bananas-speed-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg disabled:opacity-50">
@@ -260,7 +338,6 @@
                             <span>150% (Fast)</span>
                         </div>
                     </div>
-
                     <div class="mb-6">
                         <label for="piano-speed-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Piano Play Speed</label>
                         <input type="range" id="piano-speed-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg disabled:opacity-50">
@@ -270,7 +347,6 @@
                             <span>150% (Fast)</span>
                         </div>
                     </div>
-
                     <div class="mb-6">
                         <label for="rounds15-speed-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">15 rounds Play Speed</label>
                         <input type="range" id="rounds15-speed-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg disabled:opacity-50">
@@ -280,7 +356,6 @@
                             <span>150% (Fast)</span>
                         </div>
                     </div>
-                    
                     <div class="mb-6">
                         <label for="ui-scale-slider" class="block text-gray-700 dark:text-gray-300 text-lg font-semibold mb-2">Sequence Size</label>
                         <input type="range" id="ui-scale-slider" min="50" max="200" value="100" class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg disabled:opacity-50">
@@ -291,38 +366,105 @@
                         </div>
                     </div>
                 </div>
-                
             </div>
-            
             <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex justify-between">
                     <button data-action="restore-defaults" class="px-6 py-2 text-white bg-btn-control-red rounded-lg hover:bg-btn-control-red-active transition-colors font-semibold">Restore Defaults</button>
                     <button id="close-settings" class="px-6 py-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors font-semibold">Close</button>
                 </div>
             </div>
-            
         </div>
     </div>
     
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full m-4 transform scale-90 transition-transform duration-300 flex flex-col max-h-[90vh] overflow-hidden">
+            <div class="p-6 pb-4">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white pb-3">Application Instructions & Help 📚</h3>
+            </div>
+            <div class="px-6 border-b border-gray-200 dark:border-gray-700">
+                <nav id="help-tab-nav" class="flex space-x-2">
+                    <button data-tab="general" class="help-tab-button active-tab">General</button>
+                    <button data-tab="modes" class="help-tab-button">Modes</button>
+                    <button data-tab="settings" class="help-tab-button">Settings</button>
+                    <button data-tab="prompts" class="help-tab-button">Prompts</button>
+                </nav>
+            </div>
+            <div class="p-6 pt-4 overflow-y-auto flex-grow text-gray-700 dark:text-gray-300" id="help-content-container">
+                <div id="help-tab-general" class="help-tab-content"></div>
+                <div id="help-tab-modes" class="help-tab-content hidden"></div>
+                <div id="help-tab-settings" class="help-tab-content hidden"></div>
+                <div id="help-tab-prompts" class="help-tab-content hidden"></div>
+            </div>
+            <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex justify-end">
+                    <button id="close-help" class="px-6 py-2 text-white bg-primary-app rounded-lg hover:bg-secondary-app transition-colors font-semibold">Got it!</button>
+                </div>
+            </div>
         </div>
+    </div>
 
     <div id="app" class="max-w-7xl w-full mx-auto flex flex-col flex-grow">
-        </div>
+        <main id="sequence-container" class="flex-grow mb-6 transition-all duration-300 pt-1"></main>
+        <footer id="input-footer" class="sticky bottom-0 left-0 right-0 p-4 rounded-xl shadow-2xl border-t-4 border-primary-app">
+            <!-- Bananas Pad -->
+            <div id="bananas-pad" class="max-w-xs mx-auto">
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <button data-value="1" data-mode="bananas" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-mode="bananas" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-mode="bananas" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-mode="bananas" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-mode="bananas" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-mode="bananas" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-mode="bananas" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-mode="bananas" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-mode="bananas" class="btn-input btn-pad-number">9</button>
+                </div>
+                <div class="grid grid-cols-4 gap-3">
+                    <button data-action="play-demo" data-mode="bananas" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button> 
+                    <input type="text" data-mode="bananas" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button id="backspace-button-bananas" data-action="backspace" data-mode="bananas" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-mode="bananas" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
+            
+            <!-- Follows Pad -->
+            <div id="follows-pad" class="max-w-xs mx-auto" style="display: none;">
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <button data-value="1" data-mode="follows" class="btn-input btn-pad-number">1</button>
+                    <button data-value="2" data-mode="follows" class="btn-input btn-pad-number">2</button>
+                    <button data-value="3" data-mode="follows" class="btn-input btn-pad-number">3</button>
+                    <button data-value="4" data-mode="follows" class="btn-input btn-pad-number">4</button>
+                    <button data-value="5" data-mode="follows" class="btn-input btn-pad-number">5</button>
+                    <button data-value="6" data-mode="follows" class="btn-input btn-pad-number">6</button>
+                    <button data-value="7" data-mode="follows" class="btn-input btn-pad-number">7</button>
+                    <button data-value="8" data-mode="follows" class="btn-input btn-pad-number">8</button>
+                    <button data-value="9" data-mode="follows" class="btn-input btn-pad-number">9</button>
+                </div>
+                <div class="grid grid-cols-4 gap-3">
+                    <button data-action="play-demo" data-mode="follows" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button>
+                    <input type="text" data-mode="follows" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
+                    <button id="backspace-button-follows" data-action="backspace" data-mode="follows" class="btn-input btn-control text-2xl">&larr;</button>
+                    <button data-action="open-settings" data-mode="follows" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
+                </div>
+            </div>
 
-    <div id="virtual-assistant-prompts" class="hidden">
-        </div>
-    
-    <script src="/Follow/js/config.js"></script>
-    <script src="/Follow/js/state.js"></script>
-    <script src="/Follow/js/ui.js"></script>
-    <script src="/Follow/js/core.js"></script>
-    <script src="/Follow/js/demo.js"></script>
-    <script src="/Follow/js/main.js"></script>
-
-</body>
-</html>
-ue="5" data-mode="piano" class="piano-key-black btn-input black-5">5</button>
+            <!-- Piano Pad -->
+            <div id="piano-pad" class="max-w-xl mx-auto pt-0 pb-4" style="display: none;">
+                <div id="piano-keys" class="relative h-48 w-full bg-gray-200 rounded-md shadow-inner overflow-hidden mb-4">
+                    <div class="flex h-full w-full">
+                        <div class="key-container"><button data-value="C" data-mode="piano" class="piano-key-white btn-input">C</button></div>
+                        <div class="key-container"><button data-value="D" data-mode="piano" class="piano-key-white btn-input">D</button></div>
+                        <div class="key-container"><button data-value="E" data-mode="piano" class="piano-key-white btn-input">E</button></div>
+                        <div class="key-container"><button data-value="F" data-mode="piano" class="piano-key-white btn-input">F</button></div>
+                        <div class="key-container"><button data-value="G" data-mode="piano" class="piano-key-white btn-input">G</button></div>
+                        <div class="key-container"><button data-value="A" data-mode="piano" class="piano-key-white btn-input">A</button></div>
+                        <div class="key-container"><button data-value="B" data-mode="piano" class="piano-key-white btn-input">B</button></div>
+                    </div>
+                    <button data-value="1" data-mode="piano" class="piano-key-black btn-input black-1">1</button>
+                    <button data-value="2" data-mode="piano" class="piano-key-black btn-input black-2">2</button>
+                    <button data-value="3" data-mode="piano" class="piano-key-black btn-input black-3">3</button>
+                    <button data-value="4" data-mode="piano" class="piano-key-black btn-input black-4">4</button>
+                    <button data-value="5" data-mode="piano" class="piano-key-black btn-input black-5">5</button>
                 </div>
                 <div class="grid grid-cols-4 gap-3 max-w-xs mx-auto">
                     <button data-action="demo" data-mode="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">▶</button>
@@ -331,6 +473,8 @@ ue="5" data-mode="piano" class="piano-key-black btn-input black-5">5</button>
                     <button data-action="open-settings" data-mode="piano" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
                 </div>
             </div>
+
+            <!-- Rounds 15 Pad -->
             <div id="rounds15-pad" class="max-w-md mx-auto" style="display: none;">
                 <div class="grid grid-cols-4 gap-3 mb-3">
                     <button data-value="1" data-mode="rounds15" class="btn-input btn-pad-number">1</button>
@@ -348,7 +492,7 @@ ue="5" data-mode="piano" class="piano-key-black btn-input black-5">5</button>
                 </div>
                 <div class="grid grid-cols-5 gap-3">
                     <button data-action="demo" data-mode="rounds15" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-white font-bold rounded-xl text-2xl">▶</button>
-                    <button id="rounds15-reset" data-action="reset-rounds" data-mode="rounds15" class="btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl">RESET</button>
+                    <button id="rounds15-reset" data-action="reset-rounds" data-mode="rounds15" class="btn-input btn-control !bg-btn-control-red hover:!bg-btn-control-red-active text-white font-bold rounded-xl text-xl">RESET</button> 
                     <input type="text" data-mode="rounds15" class="voice-text-input btn-input !bg-primary-app !text-white !text-center !text-2xl !px-0 hidden" placeholder="🎤" title="Keyboard Voice Input">
                     <button id="backspace-button-rounds15" data-action="backspace" data-mode="rounds15" class="btn-input btn-control text-2xl">&larr;</button>
                     <button data-action="open-settings" data-mode="rounds15" class="btn-input btn-control !bg-primary-app hover:!bg-secondary-app text-2xl">⚙️</button>
@@ -358,16 +502,88 @@ ue="5" data-mode="piano" class="piano-key-black btn-input black-5">5</button>
     </div>
 
     <div id="virtual-assistant-prompts" class="hidden">
-        <!-- ... (content unchanged) ... -->
+        <h4 class="text-primary-app">Virtual Assistant Prompts</h4>
+        <p>Use these prompts with a voice assistant to manage the game modes hands-free. Click the 📋 button to copy the full prompt to your clipboard.</p>
+        <label for="prompt-bananas" class="font-bold text-gray-900 dark:text-white">Bananas Prompt</label>
+        <textarea id="prompt-bananas" class="prompt-box" readonly>Let's play 'Bananas'. This is fully automatic.
+1. I will give you one number at a time.
+2. After each number I say, you will **immediately** read the **entire** sequence, including the new number, back to me.
+3. After you finish speaking, I will give you the next number.
+4. 'Clear': Delete the last number.
+5. 'Clear all': Delete the entire sequence.
+Let's start.</textarea>
+        <button class="copy-button" data-copy-target="prompt-bananas">📋 <span class="ml-2">Copy</span></button>
+
+        <label for="prompt-piano" class="font-bold text-gray-900 dark:text-white">Piano Prompt</label>
+        <textarea id="prompt-piano" class="prompt-box" readonly>Let's play 'Piano'. This is fully automatic.
+1. I will give you one note at a time (e.g., C, 1, G, 4).
+2. After each note I say, you will **immediately** read the **entire** sequence, including the new note, back to me.
+3. After you finish speaking, I will give you the next note.
+4. 'Clear': Delete the last note.
+5. 'Clear all': Delete the entire sequence.
+Let's start.</textarea>
+        <button class="copy-button" data-copy-target="prompt-piano">📋 <span class="ml-2">Copy</span></button>
+
+        <label for="prompt-follows-2" class="font-bold text-gray-900 dark:text-white">Follows (2 Sequences) Prompt</label>
+        <textarea id="prompt-follows-2" class="prompt-box" readonly>Let's play 'Follows' with 2 sequences. This is fully automatic.
+1. I will give you numbers one by one. Silently assign them in a cycle:
+- 1st to Seq 1
+- 2nd to Seq 2
+- 3rd to Seq 1
+- 4th to Seq 2... and so on.
+2. As soon as I give you a number for Sequence 2, you will **immediately** read all sequences back to me in chunks of 3. (e.g., 3 from S1, 3 from S2... then next 3 from S1, etc.)
+3. After you finish speaking, I will give you the next number for Sequence 1.
+4. 'Clear' deletes the last number. 'Clear all' deletes everything.
+Let's start.</textarea>
+        <button class="copy-button" data-copy-target="prompt-follows-2">📋 <span class="ml-2">Copy</span></button>
+        
+        <label for="prompt-follows-3" class="font-bold text-gray-900 dark:text-white">Follows (3 Sequences) Prompt</label>
+        <textarea id="prompt-follows-3" class="prompt-box" readonly>Let's play 'Follows' with 3 sequences. This is fully automatic.
+1. I will give you numbers one by one. Silently assign them in a cycle:
+- 1st to Seq 1
+- 2nd to Seq 2
+- 3rd to Seq 3
+- 4th to Seq 1... and so on.
+2. As soon as I give you a number for Sequence 3, you will **immediately** read all sequences back to me in chunks of 3. (e.g., 3 from S1, 3 from S2, 3 from S3... then next 3 from S1, etc.)
+3. After you finish speaking, I will give you the next number for Sequence 1.
+4. 'Clear' deletes the last number. 'Clear all' deletes everything.
+Let's start.</textarea>
+        <button class="copy-button" data-copy-target="prompt-follows-3">📋 <span class="ml-2">Copy</span></button>
+        
+        <label for="prompt-follows-4" class="font-bold text-gray-900 dark:text-white">Follows (4 Sequences) Prompt</label>
+        <textarea id="prompt-follows-4" class="prompt-box" readonly>Let's play 'Follows' with 4 sequences. This is fully automatic.
+1. I will give you numbers one by one. Silently assign them in a cycle:
+- 1st to Seq 1
+- 2nd to Seq 2
+- 3rd to Seq 3
+- 4th to Seq 4
+- 5th to Seq 1... and so on.
+2. As soon as I give you a number for Sequence 4, you will **immediately** read all sequences back to me in chunks of 3. (e.g., 3 from S1, 3 from S2, 3 from S3, 3 from S4... then next 3 from S1, etc.)
+3. After you finish speaking, I will give you the next number for Sequence 1.
+4. 'Clear' deletes the last number. 'Clear all' deletes everything.
+Let's start.</textarea>
+        <button class="copy-button" data-copy-target="prompt-follows-4">📋 <span class="ml-2">Copy</span></button>
+        
+        <label for="prompt-rounds15" class="font-bold text-gray-900 dark:text-white">15 rounds Prompt</label>
+        <textarea id="prompt-rounds15" class="prompt-box" readonly>Let's play '15 rounds'. This is fully automatic.
+1. We start at Round 1 (1 number) and go to Round 15 (15 numbers).
+2. I will give you the numbers for the current round, one at a time. Silently store them.
+3. As soon as I give you the **last number for that round** (e.g., the 3rd number in Round 3), you will **immediately** read the full sequence for that round back to me.
+4. After you finish reading, you will **immediately** clear the sequence, advance to the next round, and say "Next Round" to let me know you are ready.
+5. 'Repeat': Read the current round's sequence again.
+6. 'Reset': Go back to Round 1.
+Let's start with Round 1.</textarea>
+        <button class="copy-button" data-copy-target="prompt-rounds15">📋 <span class="ml-2">Copy</span></button>
     </div>
     
-    <script src="/Follow/js/config.js"></script>
-    <script src="/Follow/js/state.js"></script>
-    <script src="/Follow/js/ui.js"></script>
-    <script src="/Follow/js/core.js"></script>
-    <script src="/Follow/js/demo.js"></script>
-    <script src="/Follow/js/main.js"></script>
+    <script src="./js/config.js"></script>
+    <script src="./js/state.js"></script>
+    <script src="./js/ui.js"></script>
+    <script src="./js/core.js"></script>
+    <script src="./js/demo.js"></script>
+    <script src="./js/main.js"></script>
 
 </body>
 </html>
+
 
