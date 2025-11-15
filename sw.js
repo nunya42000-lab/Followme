@@ -4,14 +4,15 @@ const ASSETS_TO_CACHE = [
     'index.html',
     'style.css',
     'manifest.json',
+    '1000021136.jpg', // <-- ADDED YOUR QR CODE
     'config.js',
     'state.js',
     'ui.js',
     'demo.js',
     'core.js',
     'main.js',
-    'httpsat://cdn.tailwindcss.com',
-    'httpsat://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap'
 ];
 
 // Install event: cache all assets

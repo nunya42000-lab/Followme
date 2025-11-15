@@ -114,7 +114,7 @@
         if (dom.dontShowWelcomeToggle) dom.dontShowWelcomeToggle.addEventListener('change', (e) => {
             const settings = StateManager.getSettings();
             settings.showWelcomeScreen = !e.target.checked;
-            if(dom.showWelcomeToggle) dom.showWelcomeToggle.checked = settings.showWelcomeScreen;
+            // *** REMOVED dom.showWelcomeToggle update ***
             StateManager.saveState();
         });
 
@@ -162,11 +162,8 @@
             StateManager.saveState();
         });
 
-        if (dom.showWelcomeToggle) dom.showWelcomeToggle.addEventListener('change', (e) => {
-            StateManager.getSettings().showWelcomeScreen = e.target.checked;
-            if(dom.dontShowWelcomeToggle) dom.dontShowWelcomeToggle.checked = !StateManager.getSettings().showWelcomeScreen;
-            StateManager.saveState();
-        });
+        // *** REMOVED dom.showWelcomeToggle listener ***
+        
         if (dom.darkModeToggle) dom.darkModeToggle.addEventListener('change', (e) => {
             StateManager.getSettings().isDarkMode = e.target.checked;
             UI.updateTheme(e.target.checked);
@@ -245,4 +242,3 @@
     };
 
 })();
-                

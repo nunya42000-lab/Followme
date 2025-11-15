@@ -116,11 +116,6 @@
     }
 
     // --- 4. Sequence Rendering (The Performance Fix) ---
-
-    /**
-     * Renders the *container(s)* for the sequences.
-     * This is called on load or when settings (like machine count) change.
-     */
     function renderSequences() {
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
@@ -181,20 +176,16 @@
         updateUniqueRoundsDisplay();
     }
 
-    /**
-     * Updates the number boxes for a *single* machine.
-     * This is the performance-optimized function.
-     */
     function updateMachineDisplay(index) {
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
         if (!state) return;
 
         const machineDiv = document.getElementById(`machine-${index}`);
-        if (!machineDiv) return; // Machine container doesn't exist
+        if (!machineDiv) return; 
 
         const sequence = state.sequences[index];
-        const innerGrid = machineDiv.querySelector('div'); // Get the inner grid
+        const innerGrid = machineDiv.querySelector('div'); 
         if (!innerGrid) return;
         
         const baseSize = 40;
@@ -222,9 +213,6 @@
         }
     }
 
-    /**
-     * Updates only the 'Unique Rounds' round display.
-     */
     function updateUniqueRoundsDisplay() {
         const state = StateManager.getCurrentState();
         const settings = StateManager.getSettings();
@@ -283,9 +271,9 @@
         settings.isUniqueRoundsAutoClearEnabled = dom.autoclearToggle.checked;
         settings.showWelcomeScreen = !dom.dontShowWelcomeToggle.checked;
         
-        if (dom.showWelcomeToggle) dom.showWelcomeToggle.checked = settings.showWelcomeScreen;
+        // *** REMOVED dom.showWelcomeToggle update ***
         
-        const newState = StateManager.getCurrentState(); // Gets new state if input changed
+        const newState = StateManager.getCurrentState(); 
         newState.machineCount = (newMode === AppConfig.MODES.UNIQUE_ROUNDS) ? 1 : newMachineCount;
         newState.maxRound = settings.sequenceLength;
 
@@ -338,7 +326,7 @@
         dom.playbackSpeedSlider.value = settings.playbackSpeed * 100;
         updatePlaybackSpeedDisplay(settings.playbackSpeed * 100, dom.playbackSpeedDisplay);
         
-        dom.showWelcomeToggle.checked = settings.showWelcomeScreen;
+        // *** REMOVED dom.showWelcomeToggle ***
         dom.darkModeToggle.checked = settings.isDarkMode;
         dom.speedDeleteToggle.checked = settings.isSpeedDeletingEnabled; 
         dom.autoplayToggle.checked = settings.isAutoplayEnabled;
@@ -406,7 +394,7 @@
                 <li><span class="font-bold">Keypad:</span> Tap the numbers or keys to add to the sequence.</li>
                 <li><span class="font-bold">Play (▶):</span> Plays back the current sequence(s).</li>
                 <li><span class="font-bold">Backspace (←):</span> Removes the last value.</li>
-                <li><span class="font-bold">Settings (⚙️):</span> Opens app preferences (dark mode, speed, etc.).</li>
+                <li><span class="font-bold">Settings (⚙️):</span> Opens app settings (dark mode, speed, etc.).</li>
                 <li><span class="font-bold">RESET:</span> (Unique Rounds Mode Only) Resets the game to Round 1.</li>
             </ul>`;
     }
@@ -433,7 +421,7 @@
         if (!container) return;
         container.innerHTML = `
             <h4 class="text-primary-app">Game Setup</h4>
-            <p>Accessed on launch or via the "Change Game Setup" button in Preferences.</p>
+            <p>Accessed on launch or via the "Change Game Setup" button in Settings.</p>
             <ul>
                 <li><span class="font-bold">Input:</span> Choose your keypad (9-Key, 12-Key, Piano).</li>
                 <li><span class="font-bold">Game Mode:</span> Toggle between 'Simon Says' (off) and 'Unique Rounds' (on).</li>
@@ -442,7 +430,7 @@
                 <li><span class="font-bold">Multi-Sequence Options:</span> (Simon Says, 2+ machines) Sets chunk size and delay.</li>
                 <li><span class="font-bold">Global Resize:</span> (Top-left of Setup) Changes the entire app's size.</li>
             </ul>
-            <h4 class="text-primary-app">App Preferences (⚙️)</h4>
+            <h4 class="text-primary-app">Settings (⚙️)</h4>
             <ul>
                 <li><span class="font-bold">Playback Speed:</span> A global speed control (50% - 150%).</li>
                 <li><span class="font-bold">Autoplay:</span> Plays the demo automatically after an input.</li>
@@ -598,7 +586,7 @@ Let's start with Round 1.`;
         dom.playbackSpeedSlider = document.getElementById('playback-speed-slider');
         dom.playbackSpeedDisplay = document.getElementById('playback-speed-display');
         dom.autoplayToggle = document.getElementById('autoplay-toggle');
-        dom.showWelcomeToggle = document.getElementById('show-welcome-toggle');
+        // *** REMOVED dom.showWelcomeToggle ***
         dom.darkModeToggle = document.getElementById('dark-mode-toggle');
         dom.speedDeleteToggle = document.getElementById('speed-delete-toggle');
         dom.audioPlaybackToggle = document.getElementById('audio-playback-toggle');
