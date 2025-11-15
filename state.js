@@ -107,44 +107,4 @@
     };
 
 })();
-EY);
-        settings = { ...DEFAULT_SETTINGS };
-         appState = {
-            'bananas': getInitialState('bananas'),
-            'follows': getInitialState('follows'),
-            'piano': getInitialState('piano'), 
-            'rounds15': getInitialState('rounds15'),
-        };
-    }
-    
-    currentMode = settings.currentMode || 'bananas';
-}
-
-// --- Core Functions for State Management ---
-
-function getInitialState(mode) {
-    switch (mode) {
-        case 'follows':
-            return { 
-                sequences: Array.from({ length: MAX_SEQUENCES }, () => []),
-                sequenceCount: 2,
-                nextSequenceIndex: 0
-            };
-        case 'rounds15': 
-            return {
-                sequences: [[]], 
-                sequenceCount: 1, 
-                nextSequenceIndex: 0,
-                currentRound: 1,
-                maxRound: 15
-            };
-        case 'bananas':
-        case 'piano':
-        default:
-            return { 
-                sequences: [[]], 
-                sequenceCount: 1, 
-                nextSequenceIndex: 0 
-            };
-    }
-}
+            
